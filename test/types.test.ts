@@ -6,7 +6,6 @@ import {
   type WSMessageServerSessionList,
 } from '../src/web/shared/types.ts'
 import type { PTYSessionInfo } from '../src/plugin/pty/types.ts'
-import moment from 'moment'
 
 describe('Web Types', () => {
   describe('WSMessage', () => {
@@ -29,7 +28,7 @@ describe('Web Types', () => {
           status: 'running',
           pid: 1234,
           lineCount: 5,
-          createdAt: moment().toISOString(true),
+          createdAt: new Date().toISOString(),
           args: ['hello'],
           workdir: '/home/user',
         },
@@ -65,7 +64,7 @@ describe('Web Types', () => {
         exitCode: 0,
         pid: 1234,
         lineCount: 2,
-        createdAt: moment().toISOString(true),
+        createdAt: new Date().toISOString(),
         args: ['Hello, World!'],
         workdir: '/home/user',
       }
@@ -88,7 +87,7 @@ describe('Web Types', () => {
         status: 'running',
         pid: 5678,
         lineCount: 0,
-        createdAt: moment('2026-01-21T10:00:00.000Z').toISOString(true),
+        createdAt: new Date('2026-01-21T10:00:00.000Z').toISOString(),
         args: ['Hello, World!'],
         workdir: '/home/user',
       }

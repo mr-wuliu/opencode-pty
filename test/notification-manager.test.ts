@@ -1,6 +1,5 @@
 import { describe, expect, it, mock } from 'bun:test'
 import type { OpencodeClient } from '@opencode-ai/sdk'
-import moment from 'moment'
 import { RingBuffer } from '../src/plugin/pty/buffer.ts'
 import { NotificationManager } from '../src/plugin/pty/notification-manager.ts'
 import type { PTYSession } from '../src/plugin/pty/types.ts'
@@ -26,7 +25,7 @@ function createSession(overrides: Partial<PTYSession> = {}): PTYSession {
     workdir: '/tmp',
     status: 'running',
     pid: 12345,
-    createdAt: moment(),
+    createdAt: new Date(),
     parentSessionId: 'parent-session-id',
     parentAgent: 'agent-two',
     notifyOnExit: true,
