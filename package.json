@@ -33,13 +33,7 @@
   "license": "MIT",
   "type": "module",
   "exports": {
-    "./server": {
-      "import": "./index.ts",
-      "config": {
-        "enabled": true,
-        "mode": "append"
-      }
-    },
+    "./server": "./index.ts",
     "./*": "./src/*.ts",
     "./*/*": "./src/*/*.ts",
     "./*/*/*": "./src/*/*/*.ts",
