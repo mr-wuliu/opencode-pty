@@ -13,7 +13,7 @@ describe('Web Server', () => {
     it('should start server successfully', async () => {
       await using server = await PTYServer.createServer()
       const url = server.server.url
-      expect(url.hostname).toBe('[::1]')
+      expect(url.hostname).toBe('127.0.0.1')
       expect(url.protocol).toBe('http:')
       expect(url.port).not.toBe(0)
       expect(url.port).not.toBe(8080) // Default port should be avoided
