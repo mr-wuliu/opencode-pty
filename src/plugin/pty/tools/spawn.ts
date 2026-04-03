@@ -3,6 +3,15 @@ import { manager } from '../manager.ts'
 import { checkCommandPermission, checkWorkdirPermission } from '../permissions.ts'
 import DESCRIPTION from './spawn.txt'
 
+const NOTIFY_ON_EXIT_INSTRUCTIONS = [
+  `<system_reminder>`,
+  `Completion signal for this session is the future \`<pty_exited>\` message.`,
+  `If you only need to know whether the command finished, do not call \`pty_read\`; wait for \`<pty_exited>\`.`,
+  `Never use sleep plus \`pty_read\` loops to check completion for this session.`,
+  `Call \`pty_read\` before exit only if you need live output now, the user explicitly asks for logs, or the exit notification reports a non-zero status and you need to investigate.`,
+  `</system_reminder>`,
+].join('\n')
+
 export const ptySpawn = tool({
   description: DESCRIPTION,
   args: {
@@ -52,7 +61,9 @@ export const ptySpawn = tool({
       `Workdir: ${info.workdir}`,
       `PID: ${info.pid}`,
       `Status: ${info.status}`,
+      `NotifyOnExit: ${info.notifyOnExit}`,
       `</pty_spawned>`,
+      ...(info.notifyOnExit ? ['', NOTIFY_ON_EXIT_INSTRUCTIONS] : []),
     ].join('\n')
 
     return output

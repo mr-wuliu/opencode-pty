@@ -6,6 +6,16 @@ import { formatLine } from '../formatters.ts'
 import type { PTYSessionInfo } from '../types.ts'
 import DESCRIPTION from './read.txt'
 
+const NOTIFY_ON_EXIT_REMINDER = [
+  `<system_reminder>`,
+  `This session was started with \`notifyOnExit=true\`.`,
+  `Completion signal is the future \`<pty_exited>\` message, not repeated \`pty_read\` calls.`,
+  `If you only need to know whether the command finished, stop polling and wait for \`<pty_exited>\`.`,
+  `Do not use sleep plus \`pty_read\` loops to check completion.`,
+  `Use \`pty_read\` only when you need live output now, the user explicitly asks for logs, or the exit notification reports a non-zero status and you need to investigate.`,
+  `</system_reminder>`,
+].join('\n')
+
 interface ReadArgs {
   id: string
   offset?: number
@@ -34,6 +44,14 @@ function formatPtyOutput(
     `</pty_output>`,
   ]
   return output.join('\n')
+}
+
+function appendNotifyOnExitReminder(output: string, session: PTYSessionInfo): string {
+  if (!session.notifyOnExit || session.status !== 'running') {
+    return output
+  }
+
+  return `${output}\n\n${NOTIFY_ON_EXIT_REMINDER}`
 }
 
 /**
@@ -73,12 +91,15 @@ function handlePatternRead(
   }
 
   if (result.matches.length === 0) {
-    return [
-      `<pty_output id="${id}" status="${session.status}" pattern="${pattern}">`,
-      `No lines matched the pattern '${pattern}'.`,
-      `Total lines in buffer: ${result.totalLines}`,
-      `</pty_output>`,
-    ].join('\n')
+    return appendNotifyOnExitReminder(
+      [
+        `<pty_output id="${id}" status="${session.status}" pattern="${pattern}">`,
+        `No lines matched the pattern '${pattern}'.`,
+        `Total lines in buffer: ${result.totalLines}`,
+        `</pty_output>`,
+      ].join('\n'),
+      session
+    )
   }
 
   const formattedLines = result.matches.map((match) =>
@@ -88,14 +109,17 @@ function handlePatternRead(
   const paginationMessage = `(${result.matches.length} of ${result.totalMatches} matches shown. Use offset=${offset + result.matches.length} to see more.)`
   const endMessage = `(${result.totalMatches} match${result.totalMatches === 1 ? '' : 'es'} from ${result.totalLines} total lines)`
 
-  return formatPtyOutput(
-    id,
-    session.status,
-    pattern,
-    formattedLines,
-    result.hasMore,
-    paginationMessage,
-    endMessage
+  return appendNotifyOnExitReminder(
+    formatPtyOutput(
+      id,
+      session.status,
+      pattern,
+      formattedLines,
+      result.hasMore,
+      paginationMessage,
+      endMessage
+    ),
+    session
   )
 }
 
@@ -114,12 +138,15 @@ function handlePlainRead(
   }
 
   if (result.lines.length === 0) {
-    return [
-      `<pty_output id="${args.id}" status="${session.status}">`,
-      `(No output available - buffer is empty)`,
-      `Total lines: ${result.totalLines}`,
-      `</pty_output>`,
-    ].join('\n')
+    return appendNotifyOnExitReminder(
+      [
+        `<pty_output id="${args.id}" status="${session.status}">`,
+        `(No output available - buffer is empty)`,
+        `Total lines: ${result.totalLines}`,
+        `</pty_output>`,
+      ].join('\n'),
+      session
+    )
   }
 
   const formattedLines = result.lines.map((line, index) =>
@@ -129,14 +156,17 @@ function handlePlainRead(
   const paginationMessage = `(Buffer has more lines. Use offset=${result.offset + result.lines.length} to read beyond line ${result.offset + result.lines.length})`
   const endMessage = `(End of buffer - total ${result.totalLines} lines)`
 
-  return formatPtyOutput(
-    args.id,
-    session.status,
-    undefined,
-    formattedLines,
-    result.hasMore,
-    paginationMessage,
-    endMessage
+  return appendNotifyOnExitReminder(
+    formatPtyOutput(
+      args.id,
+      session.status,
+      undefined,
+      formattedLines,
+      result.hasMore,
+      paginationMessage,
+      endMessage
+    ),
+    session
   )
 }
 

@@ -31,6 +31,7 @@ export interface PTYSessionInfo {
   args: string[]
   workdir: string
   status: PTYStatus
+  notifyOnExit: boolean
   exitCode?: number
   exitSignal?: number | string
   pid: number

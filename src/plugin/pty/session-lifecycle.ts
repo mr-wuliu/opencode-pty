@@ -150,6 +150,7 @@ export class SessionLifecycleManager {
       args: session.args,
       workdir: session.workdir,
       status: session.status,
+      notifyOnExit: session.notifyOnExit,
       exitCode: session.exitCode,
       exitSignal: session.exitSignal,
       pid: session.pid,

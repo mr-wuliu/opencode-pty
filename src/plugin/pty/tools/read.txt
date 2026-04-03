@@ -28,6 +28,7 @@ Tips:
 - To tail recent output, calculate offset as (totalLines - N) where N is how many recent lines you want
 - Lines longer than 2000 characters are truncated
 - Empty output may mean the process hasn't produced output yet
+- If the session was started with `notifyOnExit=true`, do not use repeated `pty_read` calls only to detect completion; wait for the future `<pty_exited>` message instead
 
 Examples:
 - Read first 100 lines: offset=0, limit=100

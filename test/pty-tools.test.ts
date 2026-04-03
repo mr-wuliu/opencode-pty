@@ -19,6 +19,7 @@ describe('PTY Tools', () => {
         workdir: opts.workdir || '/tmp',
         pid: 12345,
         status: 'running',
+        notifyOnExit: opts.notifyOnExit ?? false,
         createdAt: new Date().toISOString(),
         lineCount: 0,
       }))
@@ -58,7 +59,9 @@ describe('PTY Tools', () => {
       expect(result).toContain('<pty_spawned>')
       expect(result).toContain('ID: test-session-id')
       expect(result).toContain('Command: echo hello')
+      expect(result).toContain('NotifyOnExit: false')
       expect(result).toContain('</pty_spawned>')
+      expect(result).not.toContain('<system_reminder>')
     })
 
     it('should spawn with all optional args', async () => {
@@ -101,6 +104,14 @@ describe('PTY Tools', () => {
       expect(result).toContain('Command: node script.js')
       expect(result).toContain('PID: 12345')
       expect(result).toContain('Status: running')
+      expect(result).toContain('NotifyOnExit: true')
+      expect(result).toContain('<system_reminder>')
+      expect(result).toContain('Completion signal for this session is the future `<pty_exited>` message.')
+      expect(result).toContain(
+        'If you only need to know whether the command finished, do not call `pty_read`; wait for `<pty_exited>`.'
+      )
+      expect(result).toContain('Never use sleep plus `pty_read` loops to check completion for this session.')
+      expect(result).toContain('</system_reminder>')
     })
   })
 
@@ -114,6 +125,7 @@ describe('PTY Tools', () => {
         args: ['hello'],
         workdir: '/tmp',
         status: 'running',
+        notifyOnExit: false,
         pid: 12345,
         createdAt: new Date().toISOString(),
         lineCount: 2,
@@ -155,6 +167,46 @@ describe('PTY Tools', () => {
       expect(result).toContain('00002| line 2')
       expect(result).toContain('(End of buffer - total 2 lines)')
       expect(result).toContain('</pty_output>')
+    })
+
+    it('should include notifyOnExit reminder for running sessions', async () => {
+      spyOn(manager, 'get').mockReturnValue({
+        id: 'test-session-id',
+        title: 'Test Session',
+        description: 'A session for testing',
+        command: 'echo',
+        args: ['hello'],
+        workdir: '/tmp',
+        status: 'running',
+        notifyOnExit: true,
+        pid: 12345,
+        createdAt: new Date().toISOString(),
+        lineCount: 2,
+      })
+
+      const args = { id: 'test-session-id' }
+      const ctx = {
+        sessionID: 'parent',
+        messageID: 'msg',
+        agent: 'agent',
+        abort: new AbortController().signal,
+        metadata: () => {},
+        ask: async () => {},
+        directory: '/tmp',
+        worktree: '/tmp',
+      }
+
+      const result = await ptyRead.execute(args, ctx)
+
+      expect(result).toContain('<system_reminder>')
+      expect(result).toContain('This session was started with `notifyOnExit=true`.')
+      expect(result).toContain(
+        'Completion signal is the future `<pty_exited>` message, not repeated `pty_read` calls.'
+      )
+      expect(result).toContain(
+        'If you only need to know whether the command finished, stop polling and wait for `<pty_exited>`.'
+      )
+      expect(result).toContain('</system_reminder>')
     })
 
     it('should read with pattern', async () => {
@@ -224,6 +276,7 @@ describe('PTY Tools', () => {
           command: 'echo',
           args: ['hello'],
           status: 'running' as const,
+          notifyOnExit: false,
           pid: 12345,
           lineCount: 10,
           workdir: '/tmp',

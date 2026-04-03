@@ -34,8 +34,11 @@ When `notifyOnExit` is true, you will receive a message when the process exits c
 - Last line of output (truncated to 250 chars)
 
 This is useful for long-running processes where you want to be notified when they complete
-instead of polling with `pty_read`. If the process fails (non-zero exit code), the notification
-will suggest using `pty_read` with the `pattern` parameter to search for errors.
+instead of polling with `pty_read`.
+- Completion signal is the future `<pty_exited>` message
+- If you only need to know whether the command finished, do not call `pty_read`; wait for `<pty_exited>`
+- Never use sleep plus `pty_read` loops to check completion
+- Use `pty_read` before exit only if you need live output now, the user explicitly asks for logs, or the exit notification reports a non-zero status and you need to investigate
 
 Examples:
 - Start a dev server: command="npm", args=["run", "dev"], title="Dev Server"
