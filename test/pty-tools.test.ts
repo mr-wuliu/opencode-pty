@@ -106,11 +106,15 @@ describe('PTY Tools', () => {
       expect(result).toContain('Status: running')
       expect(result).toContain('NotifyOnExit: true')
       expect(result).toContain('<system_reminder>')
-      expect(result).toContain('Completion signal for this session is the future `<pty_exited>` message.')
+      expect(result).toContain(
+        'Completion signal for this session is the future `<pty_exited>` message.'
+      )
       expect(result).toContain(
         'If you only need to know whether the command finished, do not call `pty_read`; wait for `<pty_exited>`.'
       )
-      expect(result).toContain('Never use sleep plus `pty_read` loops to check completion for this session.')
+      expect(result).toContain(
+        'Never use sleep plus `pty_read` loops to check completion for this session.'
+      )
       expect(result).toContain('</system_reminder>')
     })
   })
